@@ -1,0 +1,59 @@
+
+my $divi = shift(@ARGV);
+my $datadir = "/Users/bono/Documents/REI/AE/experiment/$divi";
+
+opendir(DIR, $datadir) or die "$!:$datadir\n";
+@files = readdir(DIR);
+	foreach $file (@files) {
+		#print "$_\n";
+		my $id = '';
+		next unless($file =~ /\.idf\.txt/);
+		my $idf  = "$datadir/$file";
+		$id = $1 if($file =~ /^([\w\-]+)\.idf\.txt/);
+		print "$id\t";
+		open(IDF, $idf) or die "$!:$idr\n";
+		while(<IDF>) {
+			chomp;
+			s/\r//g;
+			my $value = $_;
+			my($zero) = split(/\t/,$value); #id
+			$value =~ s/^$zero\t//; #propery
+			$value =~ s/\t+//g; #remove a lot of \t
+			print "$value\t" if($zero eq 'Investigation Title');
+			print "$value\t" if($zero eq 'Public Release Date');
+		}
+		close IDF;
+		my $sdrf = "$datadir/$id.sdrf.txt";
+		my $i = 0;
+		my $i1 = 0;
+		my $i2 = 0;
+		undef %marrays;
+		undef %organisms;
+		open(SDRF, $sdrf) or die "$!:$sdrf\n";
+		while(<SDRF>) {
+			chomp;
+			my @values = split(/\t/);
+			if($i == 0) {
+				foreach my $value (@values) {
+					$i1 = $i if($value eq 'Array Design REF');
+					$i2 = $i if($value eq 'Characteristics [Organism]');
+					$i++;
+				}
+			} else {
+				$marrays{@values[$i1]}++   if(@values[$i1] =~ /\w/);
+				$organisms{@values[$i2]}++ if(@values[$i2] =~ /\w/);
+			}
+		}
+		close SDRF;
+		foreach my $marray (keys %marrays) {
+			print "$marray$;$marrays{$marray}\t";
+		}
+		foreach my $organism (keys %organisms) {
+			print "$organism$;$organisms{$organism}\t";
+		}
+		print "\n";
+	}
+closedir(DIR);
+
+exit 0;
+

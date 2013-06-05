@@ -1,0 +1,13 @@
+
+while(<STDIN>) {
+	chomp;
+	my($id,$desc,$date,@values) = split(/\t/,$_);
+	foreach $value (@values) {
+		my ($id2,$cnt) = split(/$;/, $value);
+		$cntbysample{$id2} += $cnt; #count all samples
+		$cntbyentry{$id2}++; #count all samples
+	}
+}
+foreach $i (sort keys %cntbysample) {
+	print "$cntbysample{$i}\t$cntbyentry{$i}\t$i\n";
+}
