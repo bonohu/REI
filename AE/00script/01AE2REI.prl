@@ -1,9 +1,27 @@
 
-my $divi = shift(@ARGV);
-my $datadir = "/Users/bono/Documents/REI/AE/experiment/$divi";
+#my $divi = shift(@ARGV);
+my $exprdir = "/Users/bono/Documents/REI/AE/experiment";
+my $arrayfile = "/Users/bono/Documents/REI/AE/array/99A.txt";
 
-opendir(DIR, $datadir) or die "$!:$datadir\n";
-@files = readdir(DIR);
+#lookup arrayname for human
+open(FILE, $arrayfile) or die;
+while(<FILE>) {
+	chomp;
+	my($id,$text) = split(/\t/); 
+	$nameofarray{$id} = $text;
+}
+close FILE;
+
+print "ID\tDescription\tDate\tArrayType\tArrayGroup\tOrganisms\tRep_organism\n"; # header line
+
+opendir(EDIR, $exprdir) or die "$!:$exprdir\n";
+@efiles = readdir(EDIR);
+foreach $divi (@efiles) {
+	next if($divi =~ /^\d/);
+	my $datadir = "/Users/bono/Documents/REI/AE/experiment/$divi";
+
+	opendir(DIR, $datadir) or die "$!:$datadir\n";
+	@files = readdir(DIR);
 	foreach $file (@files) {
 		#print "$_\n";
 		my $id = '';
@@ -11,7 +29,7 @@ opendir(DIR, $datadir) or die "$!:$datadir\n";
 		my $idf  = "$datadir/$file";
 		$id = $1 if($file =~ /^([\w\-]+)\.idf\.txt/);
 		print "$id\t";
-		open(IDF, $idf) or die "$!:$idr\n";
+		open(IDF, $idf) or die "$!:$idf\n";
 		while(<IDF>) {
 			chomp;
 			s/\r//g;
@@ -19,14 +37,27 @@ opendir(DIR, $datadir) or die "$!:$datadir\n";
 			my($zero) = split(/\t/,$value); #id
 			$value =~ s/^$zero\t//; #propery
 			$value =~ s/\t+//g; #remove a lot of \t
-			print "$value\t" if($zero eq 'Investigation Title');
+			if($zero eq 'Investigation Title') {
+				$value =~ s/^\"//; $value =~ s/\"$//;
+				$value =~ s/^transcription profiling of //i;
+				$value =~ s/^transcription profiling by array //i;
+				print "$value\t";
+			}
 			print "$value\t" if($zero eq 'Public Release Date');
 		}
 		close IDF;
 		my $sdrf = "$datadir/$id.sdrf.txt";
+		$sdrf = "$datadir/$id.hyb.sdrf.txt" unless(-f $sdrf);
+		$sdrf = "$datadir/$id.seq.sdrf.txt" unless(-f $sdrf);
+		unless(-f $sdrf) { print "\n"; next; }
 		my $i = 0;
-		my $i1 = 0;
-		my $i2 = 0;
+		my $i1 = undef;
+		my $i2 = undef;
+		my $i3 = undef;
+		my $maxorgno = 0;
+		my $rep_organism = '';
+		my $maxarrayno = 0;
+		my $rep_array = '';
 		undef %marrays;
 		undef %organisms;
 		open(SDRF, $sdrf) or die "$!:$sdrf\n";
@@ -35,25 +66,61 @@ opendir(DIR, $datadir) or die "$!:$datadir\n";
 			my @values = split(/\t/);
 			if($i == 0) {
 				foreach my $value (@values) {
-					$i1 = $i if($value eq 'Array Design REF');
-					$i2 = $i if($value eq 'Characteristics [Organism]');
+					#$i1 = $i if($value eq 'Array Design REF');
+					$i1 = $i if($value =~ /Array\s+Design\s+REF/i);
+					#$i2 = $i if($value eq 'Characteristics [Organism]');
+					$i2 = $i if(($value =~ /Characteristics/i) && ($value =~ /\[Organism\]/i));
+				#	$i3 = $i if($value =~ /Technology\s+Type/i);
 					$i++;
 				}
+				last unless(defined($i1));
+				last unless(defined($i2));
 			} else {
-				$marrays{@values[$i1]}++   if(@values[$i1] =~ /\w/);
-				$organisms{@values[$i2]}++ if(@values[$i2] =~ /\w/);
+				$values[$i1] =~ s/^\s+//; #trim heading spaces
+				$values[$i2] =~ s/^\s+//; #trim heading spaces
+				#$values[$i3] =~ s/^\s+//; #trim heading spaces
+				$values[$i1] =~ s/\"//g;  #trim double quotes
+				$values[$i2] =~ s/\"//g;  #trim double quotes
+				#$values[$i3] =~ s/\"//g;  #trim double quotes
+				$marrays{$values[$i1]}++   if($values[$i1] =~ /\w/); #Array Design REF
+				$organisms{$values[$i2]}++ if($values[$i2] =~ /\w/); #Organism
+				#$technologies{$values[$i3]}++ if($values[$i3] =~ /\w/); #Technology 
 			}
 		}
 		close SDRF;
+
+
 		foreach my $marray (keys %marrays) {
-			print "$marray$;$marrays{$marray}\t";
+			print "$nameofarray{$marray}($marray)\[$marrays{$marray}\] ";
+			if( $marrays{$marray} > $maxarrayno){ 
+				$rep_array = $nameofarray{$marray};
+				$maxarrayno = $marrays{$marray};
+			}
 		}
+		print "\t";
+		if($rep_array =~ /affymetrix/i) {
+			$arraygroup = "Affymetrix";
+		} elsif($rep_array =~ /agilent/i) {
+			$arraygroup = "Agilent";
+		} else {
+			$arraygroup = "Others";
+		}
+		print "$arraygroup";
+		print "\t";
 		foreach my $organism (keys %organisms) {
-			print "$organism$;$organisms{$organism}\t";
+			print "$organism\[$organisms{$organism}\] ";
+			if( $organisms{$organism} > $maxorgno){ 
+				$rep_organism = $organism;
+				$maxorgno = $organisms{$organism};
+			}
 		}
+		print "\t";
+		print "$rep_organism";
 		print "\n";
 	}
-closedir(DIR);
+	closedir(DIR);
+}
+closedir(EDIR);
 
 exit 0;
 
