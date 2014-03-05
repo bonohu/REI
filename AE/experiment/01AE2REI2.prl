@@ -12,7 +12,7 @@ while(<FILE>) {
 }
 close FILE;
 
-print "ID\tHardware\tDate\tRep_Provider\tProviders\tRep_organism\tOrganisms\tAssayType\tAssayGroup\tDescription\n"; # header line
+print "ID\tHardware\tDate\tRep_provider\tProviders\tRep_organism\tOrganisms\tRep_assay\tAssays\tDescription\n"; # header line
 
 opendir(EDIR, $exprdir) or die "$!:$exprdir\n";
 @efiles = readdir(EDIR);
@@ -62,6 +62,7 @@ foreach $divi (@efiles) {
 		my $i1 = undef;
 		my $i2 = undef;
 		my $i3 = undef;
+		my $i4 = undef;
 		my $maxorgno = 0;
 		my $rep_organism = '';
 		my $maxarrayno = 0;
@@ -70,9 +71,13 @@ foreach $divi (@efiles) {
 		my $rep_provider = '';
 		my $providerlist = '';
 		my $organismlist = '';
+		my $assaylist = '';
+		my $maxlibstrno = 0;
+		my $rep_libst = '';
 		undef %marrays;
 		undef %organisms;
 		undef %providers;
+		undef %libstrategies;
 		open(SDRF, $sdrf) or die "$!:$sdrf\n";
 		while(<SDRF>) {
 			chomp;
@@ -84,7 +89,7 @@ foreach $divi (@efiles) {
 					$i1 = $i if($value =~ /Array\s+Design\s+REF/i);
 					$i2 = $i if(($value =~ /Characteristics/i) && ($value =~ /\[Organism\]/i));
 					$i3 = $i if($value eq 'Characteristics [BioSourceProvider]');
-					#$i4 = $i if($value eq 'Comment[LIBRARY_STRATEGY]');
+					$i4 = $i if($value eq 'Comment[LIBRARY_STRATEGY]');
 					$i++;
 				}
 				last unless(defined($i1));
@@ -94,12 +99,15 @@ foreach $divi (@efiles) {
 				$values[$i1] =~ s/^\s+//; #trim heading spaces
 				$values[$i2] =~ s/^\s+//; #trim heading spaces
 				$values[$i3] =~ s/^\s+//; #trim heading spaces
+				$values[$i4] =~ s/^\s+//; #trim heading spaces
 				$values[$i1] =~ s/\"//g;  #trim double quotes
 				$values[$i2] =~ s/\"//g;  #trim double quotes
 				$values[$i3] =~ s/\"//g;  #trim double quotes
+				$values[$i4] =~ s/\"//g;  #trim double quotes
 				$marrays{$values[$i1]}++   if($values[$i1] =~ /\w/); #Array Design REF
 				$organisms{$values[$i2]}++ if($values[$i2] =~ /\w/); #Organism
 				$providers{$values[$i3]}++ if($values[$i3] =~ /\w/); #biosourceprovider
+				#$libstrategies{$values[$i4]}++ if($values[$i4] =~ /\w/); #library strategies (RNA-seq)
 			}
 		}
 		close SDRF;
@@ -131,21 +139,31 @@ foreach $divi (@efiles) {
 
 		#array(assay)
 		foreach my $marray (keys %marrays) {
-			print "$nameofarray{$marray}($marray)\[$marrays{$marray}\] ";
+			$assaylist .= "$nameofarray{$marray}($marray)\[$marrays{$marray}\] ";
 			if( $marrays{$marray} > $maxarrayno){ 
 				$rep_array = $nameofarray{$marray};
 				$maxarrayno = $marrays{$marray};
 			}
 		}
-		print "\t";
-		if($rep_array =~ /affymetrix/i) {
-			$arraygroup = "Affymetrix";
-		} elsif($rep_array =~ /agilent/i) {
-			$arraygroup = "Agilent";
-		} else {
-			$arraygroup = "Others";
+		foreach my $libst (keys %libstrategies) {
+			if( $libstrategies{$libst} > $maxlibstno){ 
+				$rep_libst = $libst;
+				$maxlibst = $libstrategies{$libst};
+			}
 		}
-		print "$arraygroup";
+		if($rep_libst =~ /\w/) {
+			$assaygroup = $rep_libst;
+		} else {
+			if($rep_array =~ /affymetrix/i) {
+				$assaygroup = "Affymetrix";
+			} elsif($rep_array =~ /agilent/i) {
+				$assaygroup = "Agilent";
+			} else {
+				$assaygroup = "Others";
+			}
+		}
+		print "$assaygroup\t$assaylist";
+		#print "\n$assaygroup\n";
 		print "\t";
 
 		print "$description";
