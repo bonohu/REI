@@ -18,7 +18,7 @@ print "ID\tDescription\tDate\tArrayType\tArrayGroup\tTechnology\tInstrument\tNGS
 
 opendir(EDIR, $exprdir) or die "$!:$exprdir\n";
 @efiles = readdir(EDIR);
-#foreach $divi (@efiles) {
+foreach $divi (@efiles) {
 	next if($divi =~ /^\d/); #files starting with number are script
 	next if($divi eq '.DS_Store'); # ignore .DS_Store file in MacOSX specific
 	my $datadir = "$exprdir/$divi";
@@ -150,7 +150,7 @@ opendir(EDIR, $exprdir) or die "$!:$exprdir\n";
 		print "\n";
 	}
 	closedir(DIR);
-#}
+}
 closedir(EDIR);
 
 exit 0;
