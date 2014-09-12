@@ -18,7 +18,7 @@ opendir(EDIR, $exprdir) or die "$!:$exprdir\n";
 @efiles = readdir(EDIR);
 foreach $divi (@efiles) {
 	next if($divi =~ /^\d/); #files starting with number are script
-	next if($divi eq '.DS_Store');
+	next if($divi eq '.DS_Store'); # ignore .DS_Store file in MacOSX specific
 	my $datadir = "/Users/bono/Documents/REI/AE/experiment/$divi";
 
 	opendir(DIR, $datadir) or die "$!:$datadir\n";
