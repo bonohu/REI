@@ -30,7 +30,8 @@ foreach $divi (@efiles) {
 			$id = $file;
 		} else { next; }
 		my $idf  = "$datadir/$file/$id.idf.txt";
-		print "$id\t";
+		my $description  = "";
+		my $prdate = "";
 		open(IDF, $idf) or die "$!:$idf\n";
 		while(<IDF>) {
 			chomp;
@@ -41,11 +42,12 @@ foreach $divi (@efiles) {
 			$value =~ s/\t+//g; #remove a lot of \t
 			if($zero eq 'Investigation Title') {
 				$value =~ s/^\"//; $value =~ s/\"$//;
-				print "$value\t";
+				$description = $value;
 			}
-			print "$value\t" if($zero eq 'Public Release Date');
+			$prdate = $value if($zero eq 'Public Release Date');
 		}
 		close IDF;
+		print "$id\t$description\t$prdate\t";
 		my $sdrf = "$datadir/$id/$id.sdrf.txt";
 		$sdrf = "$datadir/$/id/$id.hyb.sdrf.txt" unless(-f $sdrf);
 		$sdrf = "$datadir/$id/$id.seq.sdrf.txt" unless(-f $sdrf);
@@ -122,14 +124,14 @@ foreach $divi (@efiles) {
 				}
 				if($instlist =~ /illumina/i) {
 					$ngsgroup = "Illumina";
-				} elsif ($instlist =~ /AB/) {
-					$ngsgroup = "AB";
-				} elsif ($instlist =~ /454/) {
-					$ngsgroup = "454";
-				} elsif ($instlist =~ /ION/i) {
-					$ngsgroup = "Ion";
-				} elsif ($instlist =~ /PacBio/i) {
-					$ngsgroup = "PacBio";
+#				} elsif ($instlist =~ /AB/) {
+#					$ngsgroup = "AB";
+#				} elsif ($instlist =~ /454/) {
+#					$ngsgroup = "454";
+#				} elsif ($instlist =~ /ION/i) {
+#					$ngsgroup = "Ion";
+#				} elsif ($instlist =~ /PacBio/i) {
+#					$ngsgroup = "PacBio";
 				} else {
 					$ngsgroup = "Others";
 				}
