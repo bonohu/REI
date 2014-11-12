@@ -1,8 +1,9 @@
 
 my $divi = shift(@ARGV);
-my $prjroot   = "/Users/bono/Documents/AOE";
-my $exprdir   = "$prjroot/AE/experiment";
-my $arrayfile = "$prjroot/AE/array/99A.txt";
+my $prjroot   = "/Users/bono/AOE";
+my $exprdir   = "$prjroot/experiments";
+my $idfdir   = "$exprdir/idf";
+my $arrayfile = "$prjroot/99A.txt";
 
 #lookup arrayname for human being
 open(FILE, $arrayfile) or die;
@@ -16,20 +17,14 @@ close FILE;
 # print header line 
 print "ID\tDescription\tDate\tArrayType\tArrayGroup\tTechnology\tInstrument\tNGSGroup\tOrganisms\tRep_organism\n"; # organism
 
-opendir(EDIR, $exprdir) or die "$!:$exprdir\n";
-@efiles = readdir(EDIR);
-foreach $divi (@efiles) {
-	next if($divi =~ /^\d/); #files starting with number are script
-	next if($divi eq '.DS_Store'); # ignore .DS_Store file in MacOSX specific
-	my $datadir = "$exprdir/$divi";
-	opendir(DIR, $datadir) or die "$!:$datadir\n";
-	@files = readdir(DIR);
+opendir(EDIR, $idfdir) or die "$!:$idfdir\n";
+@files = readdir(EDIR);
 	foreach $file (@files) {
 		my $id = '';
-		if($file =~ /E\-\w+\-\d+/) {
-			$id = $file;
+		if($file =~ /(E\-\w+\-\d+)/) {
+			$id = $1;
 		} else { next; }
-		my $idf  = "$datadir/$file/$id.idf.txt";
+		my $idf  = "$exprdir/idf/$id.idf.txt";
 		my $description  = "";
 		my $prdate = "";
 		open(IDF, $idf) or die "$!:$idf\n";
@@ -48,9 +43,9 @@ foreach $divi (@efiles) {
 		}
 		close IDF;
 		print "$id\t$description\t$prdate\t";
-		my $sdrf = "$datadir/$id/$id.sdrf.txt";
-		$sdrf = "$datadir/$/id/$id.hyb.sdrf.txt" unless(-f $sdrf);
-		$sdrf = "$datadir/$id/$id.seq.sdrf.txt" unless(-f $sdrf);
+		my $sdrf = "$exprdir/sdrf/$id.sdrf.txt";
+		$sdrf = "$exprdir/sdrf/$id.hyb.sdrf.txt" unless(-f $sdrf);
+		$sdrf = "$exprdir/sdrf/$id.seq.sdrf.txt" unless(-f $sdrf);
 		unless(-f $sdrf) { print "\n"; next; }
 		my $i = 0;
 		my $i1 = undef;
@@ -151,8 +146,6 @@ foreach $divi (@efiles) {
 		print "\t";
 		print "$rep_organism";
 		print "\n";
-	}
-	closedir(DIR);
 }
 closedir(EDIR);
 
