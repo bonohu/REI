@@ -2,39 +2,30 @@
 # script to generate tab-delim file for array list
 
 my $arraydir = shift(@ARGV);
-
-opendir(ADIR, $arraydir) or die "$!:$arraydir\n";
-@afiles = readdir(ADIR);
-foreach $divi (@afiles) {
-	next if($divi =~ /^\d/);
-	my $datadir = "$arraydir/$divi";
-
-	opendir(DIR, $datadir) or die "$!:$datadir\n";
-	@files = readdir(DIR);
-	foreach $file (@files) {
-		#print "$_\n";
-		my $id = '';
-		next unless($file =~ /\.adf\.txt/);
-		my $adf  = "$datadir/$file";
-		$id = $1 if($file =~ /^([\w\-]+)\.adf\.txt/);
-		print "$id\t";
-		open(ADF, $adf) or die "$!:$adf\n";
-		while(<ADF>) {
-			chomp;
-			s/\r//g;
-			s/\"//g;
-			my($v1,$v2) = split(/\t/); #id
-			if($v1 eq 'Array Design Name'){
-				print "$v2";
-				last;
-			}
+opendir(DIR, $arraydir) or die "$!:$arraydir\n";
+@files = readdir(DIR);
+foreach $file (@files) {
+	#print "$_\n";
+	my $id = '';
+	next unless($file =~ /\.adf\.txt/);
+	my $adf  = "$arraydir/$file";
+	$id = $1 if($file =~ /^([\w\-]+)\.adf\.txt/);
+	print "$id\t";
+	open(ADF, $adf) or die "$!:$adf\n";
+	while(<ADF>) {
+		chomp;
+		s/\r//g;
+		s/\"//g;
+		my($v1,$v2) = split(/\t/); #id
+		if($v1 eq 'Array Design Name'){
+			print "$v2";
+			last;
 		}
-		close ADF;
-		print "\n";
 	}
-	closedir(DIR);
+	close ADF;
+	print "\n";
 }
-closedir(ADIR);
+closedir(DIR);
 
 exit 0;
 
