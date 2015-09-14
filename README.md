@@ -1,3 +1,5 @@
-Project to make index for RNA Expression database(ArrayExpress).
+# AOE(All of gene Expression)
 
-Scripts to extract metadata from ArrayExpress ftp site and data extracted.
+Project to maintain index for gene expression data (ArrayExpress).
+
+Scripts to extract metadata from ArrayExpress and SRA ftp site.
