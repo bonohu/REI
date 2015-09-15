@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+#extract BIOPROJECT2GEO relation from bioproject metadata retrieved from 
+# ftp://ftp.ncbi.nlm.nih.gov/bioproject/bioproject.xml
+
+while(<STDIN>) {
+	chomp;
+	print "$1\t" if(/\<ArchiveID\saccession=\"(PRJ\w+)\"/);
+	print "$1\t" if(/\<ID\>(GSE\d+)/);
+	print "\n" if(/\<Package\>/);
+}
