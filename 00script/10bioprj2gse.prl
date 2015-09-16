@@ -2,9 +2,14 @@
 #extract BIOPROJECT2GEO relation from bioproject metadata retrieved from 
 # ftp://ftp.ncbi.nlm.nih.gov/bioproject/bioproject.xml
 
-while(<STDIN>) {
+my($file) = shift(@ARGV); # bioproject.xml
+open(FILE, $file) or die "$file:$!\n";
+while(<FILE>) {
 	chomp;
-	print "$1\t" if(/\<ArchiveID\saccession=\"(PRJ\w+)\"/);
-	print "$1\t" if(/\<ID\>(GSE\d+)/);
+	print "$1\t" if(/\<ArchiveID\saccession=\"(PRJ\w+)\"/); # get BioProject ID
+	print "$1\t" if(/\<ID\>(GSE\d+)/); # get GSExxxxx
+        print "$1\t" if(/\<DataType\>([^\<]+)\</); # data type
+        print "$1\t" if(/\<Data\sdata_type=\"(\w+)\"/); # data type2
 	print "\n" if(/\<Package\>/);
 }
+close FILE;
