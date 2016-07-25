@@ -6,3 +6,7 @@ Scripts to make data for AOE (All of gene Expresion) version1 (index for ArrayEx
 	* Array contains adf files, while Experient contains idf & sdrf files.
 * `01AA2REI.prl` Perl script to make updated array list for AOE index. The output is thought to be renamed to `99A.txt`.
 * `01AE2REI.prl` Perl script to make update experiment list for AOE index. The output will be copied to AOE web server for the update.
+
+ArrayExpress data will be mirrored by the command below.
+ rsync -av rsync://anonymous@rsync.ebi.ac.uk/pub/databases/arrayexpress/ .
+
