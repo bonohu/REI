@@ -1,5 +1,6 @@
 #!/usr/bin/perl
 # script to generate tab-delim file for array list
+# output should be renamed to 99A.txt
 
 my $arraydir = shift(@ARGV);
 opendir(DIR, $arraydir) or die "$!:$arraydir\n";
